@@ -16,10 +16,12 @@ Build a **100% frontend Website Carbon Calculator** that:
 
 | API | Purpose | URL |
 |---|---|---|
-| Website Carbon API | CO₂ data + page size | https://api.websitecarbon.com/site?url=DOMAIN |
+| Website Carbon API | CO₂ calculation from bytes + green status | https://api.websitecarbon.com/data?bytes=XXX&green=1 |
 | Green Web Foundation | Green hosting check | https://api.thegreenwebfoundation.org/api/v3/greencheck/DOMAIN |
 
 Both APIs support **CORS** — can be called directly from browser JavaScript. No backend needed!
+
+**Note:** The Website Carbon API deprecated their free `/site` endpoint as of July 14, 2025. The `/data` endpoint is still free and public. Page size is estimated by fetching the target URL directly from the browser (CORS-permitting), with a ~2MB fallback if blocked.
 
 ## Project Structure
 

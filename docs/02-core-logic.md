@@ -12,21 +12,22 @@
 
 ```javascript
 function calculateCarbon(apiData) {
-  const co2Grams = apiData?.statistics?.co2?.grid?.grams || 
-                   (apiData.bytes / (1024*1024*1024)) * 0.812 * 494;
-  const bytes = apiData.bytes || apiData?.statistics?.adjustedBytes || 0;
+  const co2Grams = apiData.gco2e || apiData?.statistics?.co2?.grid?.grams || 0;
+  const bytes = apiData.bytes || 0;
   const cleanerThan = apiData.cleanerThan || 0;
-  
+
   return {
     co2Grams: parseFloat(co2Grams.toFixed(3)),
     pageSizeKB: parseFloat((bytes / 1024).toFixed(1)),
     cleanerThanPercent: parseFloat((cleanerThan * 100).toFixed(1)),
-    energyKwh: parseFloat((apiData?.statistics?.energy || (bytes/1024/1024/1024)*0.812).toFixed(6)),
+    energyKwh: parseFloat((apiData?.statistics?.energy || 0).toFixed(6)),
     co2PerYearKg: parseFloat(((co2Grams * 10000 * 12) / 1000).toFixed(2)),
     treesNeeded: parseFloat(((co2Grams * 10000 * 12) / 21000).toFixed(2)),
   };
 }
 ```
+
+The API response now uses `gco2e` (top-level) instead of nested `co2.grid.grams`. The `/data` endpoint also returns `rating` and `cleanerThan` directly.
 
 ## Rating System (A+ to F)
 
