@@ -18,10 +18,10 @@ Build a **100% frontend Website Carbon Calculator** that:
 
 | API | Purpose | URL |
 |---|---|---|
-| Website Carbon API | CO₂ data + page size | https://api.websitecarbon.com/site?url=DOMAIN |
-| Green Web Foundation | Green hosting check | https://api.thegreenwebfoundation.org/api/v3/greencheck/DOMAIN |
+| Website Carbon API | CO₂ data + page size | ~~https://api.websitecarbon.com/site?url=DOMAIN~~ (deprecated July 2025, no CORS) |
+| Green Web Foundation | Green hosting check | ~~https://api.thegreenwebfoundation.org/api/v3/greencheck/DOMAIN~~ (no CORS)
 
-Both APIs support **CORS** — can be called directly from browser JavaScript. No backend needed!
+**Note:** Both APIs do NOT support CORS. The app now calculates everything 100% client-side using the Sustainable Web Design formula: `CO₂ (g) = (bytes / 1,073,741,824) × 0.812 × 494`. No backend or external API calls needed!
 
 ---
 
@@ -364,8 +364,8 @@ Option B — GitHub:
 
 | Concern | Status |
 |---|---|
-| CORS issues | ✅ Both APIs support CORS |
-| Speed | ✅ Fast — direct API calls |
+| CORS issues | ✅ No API calls — 100% client-side calculation |
+| Speed | ✅ Instant — all calculation in browser |
 | Cost | ✅ Free forever on Vercel |
 | Complexity | ✅ Just 1 HTML file |
 | Maintenance | ✅ Nothing to maintain |

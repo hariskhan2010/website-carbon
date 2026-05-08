@@ -72,10 +72,10 @@ function startLoadingMessages() {
 ## Final Checklist
 
 - [ ] Only 2 files: index.html + vercel.json
-- [ ] Both API calls in parallel using Promise.allSettled
 - [ ] URL auto-prefixed with https:// if missing
-- [ ] Domain extracted correctly for Green Web Foundation API
-- [ ] Carbon calculation uses API data with fallback formula
+- [ ] Page size estimated via fetch (with 2MB fallback)
+- [ ] Carbon calculation uses client-side formula (no API calls)
+- [ ] Cleaner-than percentile estimated from CO₂ ranges
 - [ ] Rating A+ to F with correct colors and glow
 - [ ] All stat numbers animate counting up on display
 - [ ] Progress bar animates smoothly

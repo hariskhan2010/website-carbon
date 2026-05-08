@@ -1,14 +1,16 @@
-# Main Fetch Function & Dark Eco Theme
+# Data Flow & Dark Eco Theme
 
-## Data Flow
+## Data Flow (100% Client-Side)
 
-The `/site` endpoint was deprecated July 2025. The new approach:
+No external API calls. Everything happens in the browser:
 
-1. **Estimate page size** — Try fetching the target URL directly from browser (CORS-permitting sites). If blocked, fall back to ~2MB average.
-2. **Green hosting check** — Call Green Web Foundation API.
-3. **Calculate CO₂** — Call `https://api.websitecarbon.com/data?bytes=XXX&green=0/1`.
+1. **Estimate page size** — Try fetching target URL from browser (CORS-permitting sites). Get `Content-Length` × 10 multiplier, or measure response body. Fall back to ~2MB (2,048,000 bytes) if CORS blocks.
+2. **Calculate CO₂** — Apply Sustainable Web Design formula: `(bytes / 1,073,741,824) × 0.812 × 494 = gCO₂`
+3. **Generate rating** — Map gCO₂ to A+ through F.
+4. **Estimate cleaner-than percentile** — Map CO₂ to percentile.
+5. **Generate tips** — Based on page size and CO₂.
 
-## Main Fetch Function
+## Main Functions
 
 ```javascript
 async function estimatePageSize(url) {
@@ -19,7 +21,8 @@ async function estimatePageSize(url) {
     clearTimeout(timeoutId);
     const contentLength = res.headers.get('content-length');
     if (contentLength) {
-      return Math.max(parseInt(contentLength) * 10, 102400);
+      const htmlBytes = parseInt(contentLength);
+      return Math.max(htmlBytes * 10, 102400);
     }
     const blob = await res.blob();
     return Math.max(blob.size * 10, 102400);
@@ -43,57 +46,16 @@ async function checkWebsite(inputUrl) {
   startLoadingMessages();
 
   try {
-    const [bytes, greenRes] = await Promise.all([
-      estimatePageSize(url),
-      fetch(`https://api.thegreenwebfoundation.org/api/v3/greencheck/${domain}`).catch(() => null)
-    ]);
-
-    const greenData = greenRes?.ok ? await greenRes.json() : null;
-    const isGreen = greenData?.green ?? null;
-    const hostedBy = greenData?.hosted_by || null;
-    const green = isGreen === true ? 1 : 0;
-
-    const carbonRes = await fetch(`https://api.websitecarbon.com/data?bytes=${bytes}&green=${green}`);
-    if (!carbonRes.ok) {
-      throw new Error('Could not analyze this website. Please try again.');
-    }
-
-    const carbonData = await carbonRes.json();
-    const carbon = calculateCarbon(carbonData);
+    const bytes = await estimatePageSize(url);
+    const carbon = calculateCarbonFromBytes(bytes);
     const rating = getRating(carbon.co2Grams);
     const tips = getTips(carbon.pageSizeKB, carbon.co2Grams);
 
-    displayResult({ domain, url, carbon, rating, tips, isGreen, hostedBy });
+    displayResult({ domain, url, carbon, rating, tips, isGreen: null, hostedBy: null });
   } catch (err) {
     showError(err.message || 'Something went wrong. Please try again.');
   }
 }
-```
-
-### API Response Shapes
-
-**Website Carbon API (`/data` endpoint):**
-```json
-{
-  "bytes": 12345678,
-  "green": true,
-  "gco2e": 1.05,
-  "rating": "F",
-  "cleanerThan": 0.07,
-  "statistics": {
-    "adjustedBytes": 9320986.89,
-    "energy": 0.0026,
-    "co2": {
-      "grid": { "grams": 1.286, "litres": 0.715 },
-      "renewable": { "grams": 1.05, "litres": 0.584 }
-    }
-  }
-}
-```
-
-**Green Web Foundation API:**
-```json
-{ "green": true/false, "hosted_by": "...", "hosted_by_website": "..." }
 ```
 
 ## Dark Eco Theme

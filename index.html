@@ -231,7 +231,7 @@
 
     <footer>
       <p>🌱 Helping make the web greener</p>
-      <p>Data from <a href="https://api.websitecarbon.com/" target="_blank" rel="noopener">Website Carbon API</a> &amp; <a href="https://www.thegreenwebfoundation.org/" target="_blank" rel="noopener">Green Web Foundation</a></p>
+      <p>Carbon calculation based on <a href="https://sustainablewebdesign.org/" target="_blank" rel="noopener">Sustainable Web Design</a> methodology</p>
       <p><a href="https://vercel.com/new" target="_blank" rel="noopener">Deploy your own copy free on Vercel</a></p>
     </footer>
 
@@ -277,7 +277,6 @@
         '🔍 Fetching website data...',
         '📏 Measuring page size...',
         '⚡ Calculating energy usage...',
-        '🌱 Checking green hosting...',
         '📊 Generating your report...'
       ];
       let i = 0;
@@ -294,15 +293,24 @@
       showSection('error');
     }
 
-    function calculateCarbon(apiData) {
-      const co2Grams = apiData.gco2e || apiData?.statistics?.co2?.grid?.grams || 0;
-      const bytes = apiData.bytes || 0;
-      const cleanerThan = apiData.cleanerThan || 0;
+    function estimateCleanerThan(co2Grams) {
+      if (co2Grams <= 0.095) return 0.95;
+      if (co2Grams <= 0.186) return 0.80;
+      if (co2Grams <= 0.341) return 0.60;
+      if (co2Grams <= 0.493) return 0.40;
+      if (co2Grams <= 0.656) return 0.20;
+      return 0.07;
+    }
+
+    function calculateCarbonFromBytes(bytes) {
+      const gb = bytes / (1024 * 1024 * 1024);
+      const co2Grams = gb * 0.812 * 494;
+      const cleanerThan = estimateCleanerThan(co2Grams);
       return {
         co2Grams: parseFloat(co2Grams.toFixed(3)),
         pageSizeKB: parseFloat((bytes / 1024).toFixed(1)),
         cleanerThanPercent: parseFloat((cleanerThan * 100).toFixed(1)),
-        energyKwh: parseFloat((apiData?.statistics?.energy || 0).toFixed(6)),
+        energyKwh: parseFloat((gb * 0.812).toFixed(6)),
         co2PerYearKg: parseFloat(((co2Grams * 10000 * 12) / 1000).toFixed(2)),
         treesNeeded: parseFloat(((co2Grams * 10000 * 12) / 21000).toFixed(2)),
       };
@@ -517,24 +525,11 @@
       showSection('loading');
       startLoadingMessages();
       try {
-        const [bytes, greenRes] = await Promise.all([
-          estimatePageSize(url),
-          fetch(`https://api.thegreenwebfoundation.org/api/v3/greencheck/${domain}`).catch(() => null)
-        ]);
-        const greenData = greenRes?.ok ? await greenRes.json() : null;
-        const isGreen = greenData?.green ?? null;
-        const hostedBy = greenData?.hosted_by || null;
-        const green = isGreen === true ? 1 : 0;
-
-        const carbonRes = await fetch(`https://api.websitecarbon.com/data?bytes=${bytes}&green=${green}`);
-        if (!carbonRes.ok) {
-          throw new Error('Could not analyze this website. Please try again.');
-        }
-        const carbonData = await carbonRes.json();
-        const carbon = calculateCarbon(carbonData);
+        const bytes = await estimatePageSize(url);
+        const carbon = calculateCarbonFromBytes(bytes);
         const rating = getRating(carbon.co2Grams);
         const tips = getTips(carbon.pageSizeKB, carbon.co2Grams);
-        displayResult({ domain, url, carbon, rating, tips, isGreen, hostedBy });
+        displayResult({ domain, url, carbon, rating, tips, isGreen: null, hostedBy: null });
       } catch (err) {
         showError(err.message || 'Something went wrong. Please try again.');
       }

@@ -74,5 +74,5 @@ Numbers count up with animation (0 → final value, 1.2s duration)
 
 ## 7. FOOTER
 - "🌱 Helping make the web greener"
-- "Data from Website Carbon API & Green Web Foundation"
+- "Carbon calculation based on Sustainable Web Design methodology"
 - "Deploy your own copy free on Vercel"

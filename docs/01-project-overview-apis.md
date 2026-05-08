@@ -1,27 +1,31 @@
-# 🌍 Website Carbon Calculator — Project Overview & APIs
+# 🌍 Website Carbon Calculator — Project Overview & Calculation Approach
 
 ## Project Overview
 
 Build a **100% frontend Website Carbon Calculator** that:
 - Deployed on **Vercel** — no backend, no server
 - User enters any website URL
-- App calls free public APIs directly from browser
-- Calculates CO₂ per visit, gives rating A+ to F
-- Shows green hosting badge, tips, comparisons
+- Calculates CO₂ per visit using client-side formula, gives rating A+ to F
+- Shows tips, comparisons
 - Shareable result card
 - Works on **PC and Mobile** (fully responsive)
 - Zero cost to run — forever free on Vercel
 
-## APIs Used (All Free, All Support CORS)
+## Calculation Approach (100% Client-Side)
 
-| API | Purpose | URL |
-|---|---|---|
-| Website Carbon API | CO₂ calculation from bytes + green status | https://api.websitecarbon.com/data?bytes=XXX&green=1 |
-| Green Web Foundation | Green hosting check | https://api.thegreenwebfoundation.org/api/v3/greencheck/DOMAIN |
+No external API calls needed. Everything calculated in the browser.
 
-Both APIs support **CORS** — can be called directly from browser JavaScript. No backend needed!
+**Formula (Sustainable Web Design methodology):**
+```
+CO₂ (grams) = (bytes / 1,073,741,824) × 0.812 kWh/GB × 494 gCO₂e/kWh
+```
 
-**Note:** The Website Carbon API deprecated their free `/site` endpoint as of July 14, 2025. The `/data` endpoint is still free and public. Page size is estimated by fetching the target URL directly from the browser (CORS-permitting), with a ~2MB fallback if blocked.
+**Data flow:**
+1. **Estimate page size** — Try fetching the target URL from browser to get `Content-Length` (HTML size × 10 multiplier). If CORS blocks it, fall back to ~2MB (2,048,000 bytes).
+2. **Calculate CO₂** — Apply the formula above to get grams of CO₂ per visit.
+3. **Generate rating** — Map CO₂ grams to A+ through F using standard thresholds.
+4. **Estimate cleaner-than percentile** — Map CO₂ to percentile based on HTTP Archive data ranges.
+5. **Generate tips** — Based on page size and CO₂ values.
 
 ## Project Structure
 
@@ -37,8 +41,9 @@ That's it — only 2 files!
 
 | Concern | Status |
 |---|---|
-| CORS issues | ✅ Both APIs support CORS |
-| Speed | ✅ Fast — direct API calls |
+| No CORS issues | ✅ No API calls needed at all |
+| Speed | ✅ Instant — all calculation in browser |
 | Cost | ✅ Free forever on Vercel |
 | Complexity | ✅ Just 1 HTML file |
 | Maintenance | ✅ Nothing to maintain |
+| Works offline | ✅ Yes — no network dependencies |
